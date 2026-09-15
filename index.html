@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculateur de moyenne et variance</title>
+<style>
+  :root {
+    --bg: #f5f5f7;
+    --card-bg: #ffffff;
+    --text: #1d1d1f;
+    --subtext: #6e6e73;
+    --border: #d2d2d7;
+    --accent: #0071e3;
+    --accent-hover: #0077ed;
+    --reset: #e8e8ed;
+    --reset-text: #1d1d1f;
+    --reset-hover: #dcdce1;
+    --result-bg: #f0f7ff;
+    --result-border: #cfe4ff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1c1c1e;
+      --card-bg: #2c2c2e;
+      --text: #f5f5f7;
+      --subtext: #a1a1a6;
+      --border: #3a3a3c;
+      --accent: #0a84ff;
+      --accent-hover: #3aa0ff;
+      --reset: #3a3a3c;
+      --reset-text: #f5f5f7;
+      --reset-hover: #48484a;
+      --result-bg: #0a2540;
+      --result-border: #103a63;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #1c1c1e;
+    --card-bg: #2c2c2e;
+    --text: #f5f5f7;
+    --subtext: #a1a1a6;
+    --border: #3a3a3c;
+    --accent: #0a84ff;
+    --accent-hover: #3aa0ff;
+    --reset: #3a3a3c;
+    --reset-text: #f5f5f7;
+    --reset-hover: #48484a;
+    --result-bg: #0a2540;
+    --result-border: #103a63;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 2rem 1rem;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 720px;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+    margin-bottom: 0.25rem;
+    text-align: center;
+  }
+
+  p.subtitle {
+    color: var(--subtext);
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+  }
+
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.6rem;
+  }
+
+  @media (max-width: 520px) {
+    .grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  .cell-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .cell-label {
+    font-size: 0.7rem;
+    color: var(--subtext);
+  }
+
+  .cell {
+    width: 100%;
+    max-width: 100%;
+    padding: 0.55rem 0.3rem;
+    text-align: center;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 0.95rem;
+    -moz-appearance: textfield;
+  }
+
+  .cell:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  .cell::-webkit-outer-spin-button,
+  .cell::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  .buttons {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+  }
+
+  button {
+    border: none;
+    border-radius: 12px;
+    padding: 0.75rem 1.75rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  #submitBtn {
+    background: var(--accent);
+    color: #ffffff;
+  }
+  #submitBtn:hover { background: var(--accent-hover); }
+
+  #resetBtn {
+    background: var(--reset);
+    color: var(--reset-text);
+  }
+  #resetBtn:hover { background: var(--reset-hover); }
+
+  .results {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  @media (max-width: 480px) {
+    .results { grid-template-columns: 1fr; }
+  }
+
+  .result-box {
+    background: var(--result-bg);
+    border: 1px solid var(--result-border);
+    border-radius: 12px;
+    padding: 1rem;
+    text-align: center;
+  }
+
+  .result-label {
+    font-size: 0.8rem;
+    color: var(--subtext);
+    margin-bottom: 0.35rem;
+  }
+
+  .result-value {
+    font-size: 1.6rem;
+    font-weight: 700;
+  }
+
+  .note {
+    font-size: 0.8rem;
+    color: var(--subtext);
+    text-align: center;
+    margin-top: 0.75rem;
+  }
+
+  .error {
+    color: #ff453a;
+    text-align: center;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+    min-height: 1.1em;
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <h1>Moyenne et variance</h1>
+    <p class="subtitle">Entrez jusqu'à 30 valeurs numériques, puis cliquez sur « Soumettre ».</p>
+
+    <div class="card">
+      <div class="grid" id="grid"></div>
+    </div>
+
+    <div class="buttons">
+      <button id="submitBtn">Soumettre</button>
+      <button id="resetBtn">Réinitialiser</button>
+    </div>
+
+    <div id="errorMsg" class="error"></div>
+
+    <div class="card">
+      <div class="results">
+        <div class="result-box">
+          <div class="result-label">Moyenne</div>
+          <div class="result-value" id="meanValue">—</div>
+        </div>
+        <div class="result-box">
+          <div class="result-label">Variance</div>
+          <div class="result-value" id="varValue">—</div>
+        </div>
+      </div>
+      <p class="note" id="countNote"></p>
+    </div>
+  </div>
+
+  <script>
+    const N = 30;
+    const grid = document.getElementById('grid');
+    const errorMsg = document.getElementById('errorMsg');
+    const meanValue = document.getElementById('meanValue');
+    const varValue = document.getElementById('varValue');
+    const countNote = document.getElementById('countNote');
+
+    // Génère les 30 cases
+    for (let i = 1; i <= N; i++) {
+      const wrap = document.createElement('div');
+      wrap.className = 'cell-wrap';
+
+      const label = document.createElement('div');
+      label.className = 'cell-label';
+      label.textContent = i;
+
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.inputMode = 'decimal';
+      input.step = 'any';
+      input.className = 'cell';
+      input.id = 'cell-' + i;
+
+      wrap.appendChild(label);
+      wrap.appendChild(input);
+      grid.appendChild(wrap);
+    }
+
+    function getValues() {
+      const values = [];
+      for (let i = 1; i <= N; i++) {
+        const raw = document.getElementById('cell-' + i).value.trim();
+        if (raw !== '') {
+          const num = parseFloat(raw);
+          if (!isNaN(num)) values.push(num);
+        }
+      }
+      return values;
+    }
+
+    document.getElementById('submitBtn').addEventListener('click', () => {
+      errorMsg.textContent = '';
+      const values = getValues();
+
+      if (values.length === 0) {
+        errorMsg.textContent = 'Veuillez entrer au moins une valeur numérique.';
+        meanValue.textContent = '—';
+        varValue.textContent = '—';
+        countNote.textContent = '';
+        return;
+      }
+
+      const n = values.length;
+      const mean = values.reduce((sum, v) => sum + v, 0) / n;
+      const variance = values.reduce((sum, v) => sum + (v - mean) ** 2, 0) / n;
+
+      meanValue.textContent = mean.toFixed(4);
+      varValue.textContent = variance.toFixed(4);
+      countNote.textContent = `Calculé sur ${n} valeur${n > 1 ? 's' : ''} remplie${n > 1 ? 's' : ''} sur ${N} (variance de population).`;
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      for (let i = 1; i <= N; i++) {
+        document.getElementById('cell-' + i).value = '';
+      }
+      meanValue.textContent = '—';
+      varValue.textContent = '—';
+      countNote.textContent = '';
+      errorMsg.textContent = '';
+    });
+  </script>
+</body>
+</html>
