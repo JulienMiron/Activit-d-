@@ -89,6 +89,48 @@
     margin-bottom: 1.25rem;
   }
 
+  .card h2 {
+    font-size: 1rem;
+    margin-top: 0;
+    margin-bottom: 1rem;
+    text-align: center;
+  }
+
+  .constants-row {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .constant-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .constant-label {
+    font-size: 0.85rem;
+    color: var(--subtext);
+  }
+
+  .constant-input {
+    width: 100px;
+    padding: 0.5rem;
+    text-align: center;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 1rem;
+  }
+
+  .constant-input:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
   .grid {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
@@ -218,6 +260,20 @@
     <p class="subtitle">Entrez jusqu'à 30 valeurs numériques, puis cliquez sur « Soumettre ».</p>
 
     <div class="card">
+      <h2>Transformation aX + b</h2>
+      <div class="constants-row">
+        <div class="constant-wrap">
+          <span class="constant-label">a</span>
+          <input type="number" step="any" class="constant-input" id="constA" value="1">
+        </div>
+        <div class="constant-wrap">
+          <span class="constant-label">b</span>
+          <input type="number" step="any" class="constant-input" id="constB" value="0">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
       <div class="grid" id="grid"></div>
     </div>
 
@@ -231,11 +287,11 @@
     <div class="card">
       <div class="results">
         <div class="result-box">
-          <div class="result-label">Moyenne</div>
+          <div class="result-label" id="meanLabel">Moyenne (aX+b)</div>
           <div class="result-value" id="meanValue">—</div>
         </div>
         <div class="result-box">
-          <div class="result-label">Variance</div>
+          <div class="result-label" id="varLabel">Variance (aX+b)</div>
           <div class="result-value" id="varValue">—</div>
         </div>
       </div>
@@ -252,6 +308,8 @@
     const errorMsg = document.getElementById('errorMsg');
     const meanValue = document.getElementById('meanValue');
     const varValue = document.getElementById('varValue');
+    const meanLabel = document.getElementById('meanLabel');
+    const varLabel = document.getElementById('varLabel');
     const countNote = document.getElementById('countNote');
 
     // Génère les 30 cases
@@ -287,6 +345,12 @@
       return values;
     }
 
+    function getConstant(id, fallback) {
+      const raw = document.getElementById(id).value.trim();
+      const num = parseFloat(raw);
+      return isNaN(num) ? fallback : num;
+    }
+
     document.getElementById('submitBtn').addEventListener('click', () => {
       errorMsg.textContent = '';
       const values = getValues();
@@ -299,15 +363,26 @@
         return;
       }
 
-      const n = values.length;
-      const mean = values.reduce((sum, v) => sum + v, 0) / n;
-      const variance = values.reduce((sum, v) => sum + (v - mean) ** 2, 0) / n;
+      const a = getConstant('constA', 1);
+      const b = getConstant('constB', 0);
 
-      meanValue.textContent = mean.toFixed(4);
-      varValue.textContent = variance.toFixed(4);
+      const n = values.length;
+      // Statistiques calculées sur les données brutes X
+      const meanX = values.reduce((sum, v) => sum + v, 0) / n;
+      const varX = values.reduce((sum, v) => sum + (v - meanX) ** 2, 0) / n;
+
+      // Statistiques affichées, pour la variable transformée aX + b
+      const meanDisplay = a * meanX + b;
+      const varDisplay = (a ** 2) * varX;
+
+      meanLabel.textContent = `Moyenne (${a}X + ${b})`;
+      varLabel.textContent = `Variance (${a}X + ${b})`;
+      meanValue.textContent = meanDisplay.toFixed(4);
+      varValue.textContent = varDisplay.toFixed(4);
       countNote.textContent = `Calculé sur ${n} valeur${n > 1 ? 's' : ''} remplie${n > 1 ? 's' : ''} sur ${N} (variance de population).`;
 
-      // Envoie les données vers la feuille Google Sheets
+      // Envoie les données BRUTES (X) vers la feuille Google Sheets,
+      // ainsi que la moyenne et la variance brutes (non transformées)
       if (SHEET_WEB_APP_URL && SHEET_WEB_APP_URL !== 'COLLE_TON_URL_ICI') {
         const allCells = [];
         for (let i = 1; i <= N; i++) {
@@ -321,8 +396,8 @@
           body: JSON.stringify({
             timestamp: new Date().toISOString(),
             values: allCells,
-            mean: mean,
-            variance: variance
+            mean: meanX,
+            variance: varX
           })
         }).catch(err => {
           console.error('Erreur lors de l\'envoi vers Google Sheets :', err);
@@ -336,6 +411,8 @@
       }
       meanValue.textContent = '—';
       varValue.textContent = '—';
+      meanLabel.textContent = 'Moyenne (aX+b)';
+      varLabel.textContent = 'Variance (aX+b)';
       countNote.textContent = '';
       errorMsg.textContent = '';
     });
