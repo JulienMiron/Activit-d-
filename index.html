@@ -257,6 +257,14 @@
     margin-top: 0.5rem;
     min-height: 1.1em;
   }
+
+  .confirm {
+    color: #34c759;
+    text-align: center;
+    font-size: 0.95rem;
+    font-weight: 600;
+    min-height: 1.2em;
+  }
 </style>
 </head>
 <body>
@@ -291,6 +299,8 @@
     <div class="card">
       <div class="grid" id="grid"></div>
     </div>
+
+    <div id="confirmMsg" class="confirm"></div>
 
     <div class="buttons">
       <button id="submitBtn">Soumettre</button>
@@ -327,6 +337,7 @@
     const meanLabel = document.getElementById('meanLabel');
     const varLabel = document.getElementById('varLabel');
     const countNote = document.getElementById('countNote');
+    const confirmMsg = document.getElementById('confirmMsg');
 
     // Génère les 30 cases
     for (let i = 1; i <= N; i++) {
@@ -407,6 +418,7 @@
     }
 
     document.getElementById('submitBtn').addEventListener('click', () => {
+      confirmMsg.textContent = '';
       const isValid = updateValidation();
       if (!isValid) {
         meanValue.textContent = '—';
@@ -442,6 +454,7 @@
       meanValue.textContent = meanDisplay.toFixed(4);
       varValue.textContent = varDisplay.toFixed(4);
       countNote.textContent = `Calculé sur ${n} valeur${n > 1 ? 's' : ''} remplie${n > 1 ? 's' : ''} sur ${N} (variance de population).`;
+      confirmMsg.textContent = '✓ Réponse soumise avec succès !';
 
       // Envoie les données BRUTES (X) vers la feuille Google Sheets,
       // ainsi que la moyenne et la variance brutes (non transformées)
@@ -485,6 +498,7 @@
       varLabel.textContent = 'Variance (aX+b)';
       countNote.textContent = '';
       errorMsg.textContent = '';
+      confirmMsg.textContent = '';
     });
   </script>
 </body>
