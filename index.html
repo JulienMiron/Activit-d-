@@ -265,6 +265,16 @@
     <p class="subtitle">Entrez jusqu'à 30 valeurs numériques, puis cliquez sur « Soumettre ».</p>
 
     <div class="card">
+      <h2>Identification</h2>
+      <div class="constants-row">
+        <div class="constant-wrap">
+          <span class="constant-label">Prénom</span>
+          <input type="text" class="constant-input" id="prenom" style="width: 160px;">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
       <h2>Transformation aX + b</h2>
       <div class="constants-row">
         <div class="constant-wrap">
@@ -442,6 +452,7 @@
         }
 
         const dureeSecondes = startTime !== null ? (Date.now() - startTime) / 1000 : null;
+        const prenom = document.getElementById('prenom').value.trim();
 
         fetch(SHEET_WEB_APP_URL, {
           method: 'POST',
@@ -449,6 +460,7 @@
           headers: { 'Content-Type': 'text/plain' },
           body: JSON.stringify({
             timestamp: new Date().toISOString(),
+            prenom: prenom,
             duration: dureeSecondes,
             values: allCells,
             mean: meanX,
