@@ -244,6 +244,9 @@
   </div>
 
   <script>
+    // Colle ici l'URL de ton déploiement Google Apps Script (se termine par /exec)
+    const SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw6KipP1E1OuiJsp5kyBU8wsQK682ZTMasdMdM0lIRn4th8bebDtTMep9RMc0sXSlApZw/exec';
+
     const N = 30;
     const grid = document.getElementById('grid');
     const errorMsg = document.getElementById('errorMsg');
@@ -303,6 +306,28 @@
       meanValue.textContent = mean.toFixed(4);
       varValue.textContent = variance.toFixed(4);
       countNote.textContent = `Calculé sur ${n} valeur${n > 1 ? 's' : ''} remplie${n > 1 ? 's' : ''} sur ${N} (variance de population).`;
+
+      // Envoie les données vers la feuille Google Sheets
+      if (SHEET_WEB_APP_URL && SHEET_WEB_APP_URL !== 'COLLE_TON_URL_ICI') {
+        const allCells = [];
+        for (let i = 1; i <= N; i++) {
+          allCells.push(document.getElementById('cell-' + i).value.trim());
+        }
+
+        fetch(SHEET_WEB_APP_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify({
+            timestamp: new Date().toISOString(),
+            values: allCells,
+            mean: mean,
+            variance: variance
+          })
+        }).catch(err => {
+          console.error('Erreur lors de l\'envoi vers Google Sheets :', err);
+        });
+      }
     });
 
     document.getElementById('resetBtn').addEventListener('click', () => {
