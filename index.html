@@ -309,6 +309,7 @@
     const SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw6KipP1E1OuiJsp5kyBU8wsQK682ZTMasdMdM0lIRn4th8bebDtTMep9RMc0sXSlApZw/exec';
 
     const N = 30;
+    let startTime = null; // instant de la première valeur entrée (chronomètre invisible)
     const grid = document.getElementById('grid');
     const errorMsg = document.getElementById('errorMsg');
     const meanValue = document.getElementById('meanValue');
@@ -334,11 +335,18 @@
       input.step = '1';
       input.className = 'cell';
       input.id = 'cell-' + i;
-      input.addEventListener('input', updateValidation);
+      input.addEventListener('input', handleCellInput);
 
       wrap.appendChild(label);
       wrap.appendChild(input);
       grid.appendChild(wrap);
+    }
+
+    function handleCellInput() {
+      if (startTime === null) {
+        startTime = Date.now();
+      }
+      updateValidation();
     }
 
     // Une case est valide si elle est vide, ou si elle contient
@@ -433,12 +441,15 @@
           allCells.push(document.getElementById('cell-' + i).value.trim());
         }
 
+        const dureeSecondes = startTime !== null ? (Date.now() - startTime) / 1000 : null;
+
         fetch(SHEET_WEB_APP_URL, {
           method: 'POST',
           mode: 'no-cors',
           headers: { 'Content-Type': 'text/plain' },
           body: JSON.stringify({
             timestamp: new Date().toISOString(),
+            duration: dureeSecondes,
             values: allCells,
             mean: meanX,
             variance: varX
@@ -450,6 +461,7 @@
     });
 
     document.getElementById('resetBtn').addEventListener('click', () => {
+      startTime = null;
       for (let i = 1; i <= N; i++) {
         const cell = document.getElementById('cell-' + i);
         cell.value = '';
