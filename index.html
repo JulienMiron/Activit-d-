@@ -427,7 +427,7 @@
 
       // Envoie les données BRUTES (X) vers la feuille Google Sheets,
       // ainsi que la moyenne et la variance brutes (non transformées)
-      if (SHEET_WEB_APP_URL && SHEET_WEB_APP_URL !== 'https://script.google.com/macros/s/AKfycbw6KipP1E1OuiJsp5kyBU8wsQK682ZTMasdMdM0lIRn4th8bebDtTMep9RMc0sXSlApZw/exec') {
+      if (SHEET_WEB_APP_URL) {
         const allCells = [];
         for (let i = 1; i <= N; i++) {
           allCells.push(document.getElementById('cell-' + i).value.trim());
