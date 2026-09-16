@@ -173,6 +173,11 @@
     border-color: var(--accent);
   }
 
+  .cell.invalid {
+    border-color: #ff453a;
+    background: rgba(255, 69, 58, 0.1);
+  }
+
   .cell::-webkit-outer-spin-button,
   .cell::-webkit-inner-spin-button {
     -webkit-appearance: none;
@@ -323,14 +328,47 @@
 
       const input = document.createElement('input');
       input.type = 'number';
-      input.inputMode = 'decimal';
-      input.step = 'any';
+      input.inputMode = 'numeric';
+      input.min = '1';
+      input.max = '6';
+      input.step = '1';
       input.className = 'cell';
       input.id = 'cell-' + i;
+      input.addEventListener('input', updateValidation);
 
       wrap.appendChild(label);
       wrap.appendChild(input);
       grid.appendChild(wrap);
+    }
+
+    // Une case est valide si elle est vide, ou si elle contient
+    // exactement un entier parmi 1, 2, 3, 4, 5, 6 (un résultat de dé).
+    function isValidDieValue(raw) {
+      return /^[1-6]$/.test(raw);
+    }
+
+    function updateValidation() {
+      let invalidCount = 0;
+      for (let i = 1; i <= N; i++) {
+        const cell = document.getElementById('cell-' + i);
+        const raw = cell.value.trim();
+        if (raw === '' || isValidDieValue(raw)) {
+          cell.classList.remove('invalid');
+        } else {
+          cell.classList.add('invalid');
+          invalidCount++;
+        }
+      }
+
+      if (invalidCount > 0) {
+        errorMsg.textContent = invalidCount === 1
+          ? 'Une case contient une valeur qui n\'est pas un résultat de dé valide (1 à 6). Relancez le dé et inscrivez la nouvelle valeur dans la case en rouge.'
+          : `${invalidCount} cases contiennent une valeur qui n'est pas un résultat de dé valide (1 à 6). Relancez le dé et inscrivez les nouvelles valeurs dans les cases en rouge.`;
+      } else {
+        errorMsg.textContent = '';
+      }
+
+      return invalidCount === 0;
     }
 
     function getValues() {
@@ -338,8 +376,7 @@
       for (let i = 1; i <= N; i++) {
         const raw = document.getElementById('cell-' + i).value.trim();
         if (raw !== '') {
-          const num = parseFloat(raw);
-          if (!isNaN(num)) values.push(num);
+          values.push(parseInt(raw, 10));
         }
       }
       return values;
@@ -352,7 +389,14 @@
     }
 
     document.getElementById('submitBtn').addEventListener('click', () => {
-      errorMsg.textContent = '';
+      const isValid = updateValidation();
+      if (!isValid) {
+        meanValue.textContent = '—';
+        varValue.textContent = '—';
+        countNote.textContent = '';
+        return;
+      }
+
       const values = getValues();
 
       if (values.length === 0) {
@@ -407,7 +451,9 @@
 
     document.getElementById('resetBtn').addEventListener('click', () => {
       for (let i = 1; i <= N; i++) {
-        document.getElementById('cell-' + i).value = '';
+        const cell = document.getElementById('cell-' + i);
+        cell.value = '';
+        cell.classList.remove('invalid');
       }
       meanValue.textContent = '—';
       varValue.textContent = '—';
